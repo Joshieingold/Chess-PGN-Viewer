@@ -1,6 +1,6 @@
 <h1>Chess PGN Viewer Database App</h1>
 
-Welcome to the Chess PGN Viewer Database App! This application allows you to view and analyze chess games from PGN (Portable Game Notation) files, providing an intuitive and interactive interface for chess enthusiasts.
+Welcome to the Chess PGN Viewer Database App! This application allows you to view and analyze chess games from PGN (Portable Game Notation) files, providing a clean, intuitive and interactive interface for chess players.
 
 <h1>Features</h1>
   <ul>
