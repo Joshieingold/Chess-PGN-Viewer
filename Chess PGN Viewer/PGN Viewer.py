@@ -1,8 +1,13 @@
+# Librarys being used.
 import tkinter as tk
 from PIL import Image, ImageTk
 import os
 import clipboard
 
+# Global Variables
+turn_num = 1
+global PGN 
+PGN = []
 # Creates a fresh chess board for the use of the game.
 def CreateBoard():
     board = []
@@ -18,12 +23,10 @@ def CreateBoard():
     board.append(white_pawns)
     board.append(white_minor_pieces)
     return board
-
 # Prints the chess board into the console.
 def PrintConsoleBoard(board):
     for i in board:
         print(i)
-
 # Does the logic for making the 64 squares of a chess board.
 def DrawBoard(gui_board, board, images):
     gui_board.delete("all")  # Clear the current board
@@ -36,7 +39,6 @@ def DrawBoard(gui_board, board, images):
             piece = board[j][i]
             if piece != " ":
                 gui_board.create_image((x0 + x1) // 2, (y0 + y1) // 2, image=images[piece])
-
 # Takes the location of your selected piece in the array and moves it to the next selected place.
 def ArrayTransfer(board, from_location, to_location):
     if IsValidMove(board, from_location, to_location):
@@ -46,7 +48,6 @@ def ArrayTransfer(board, from_location, to_location):
         piece = board[rank_from][file_from]
         board[rank_from][file_from] = " "
         board[rank_to][file_to] = piece
-
 # Prints a FEN to the console after every move.
 def CreateFEN(board):
     FEN = ""
@@ -66,7 +67,6 @@ def CreateFEN(board):
             FEN += str(count)
     print(FEN)
     clipboard.copy(FEN)
-
 # Imports a FEN string into the board
 def ImportFEN(board, fen):
     imported_FEN = fen.split("/")
@@ -81,24 +81,30 @@ def ImportFEN(board, fen):
         new_board.append(new_rank)
     for i in range(8):
         board[i] = new_board[i]
-
 # Checks if a move is valid
+
 def IsValidMove(board, from_pos, to_pos):
     piece = board[from_pos[1]][from_pos[0]]
-    if piece.lower() == 'p':
-        return IsValidPawnMove(board, from_pos, to_pos, piece.isupper())
-    elif piece.lower() == 'r':
-        return IsValidRookMove(board, from_pos, to_pos)
-    elif piece.lower() == 'n':
-        return IsValidKnightMove(board, from_pos, to_pos)
-    elif piece.lower() == 'b':
-        return IsValidBishopMove(board, from_pos, to_pos)
-    elif piece.lower() == 'q':
-        return IsValidQueenMove(board, from_pos, to_pos)
-    elif piece.lower() == 'k':
-        return IsValidKingMove(board, from_pos, to_pos)
+    if SwitchTurn(board, from_pos, to_pos) == True:
+        if piece.lower() == 'p':
+            return IsValidPawnMove(board, from_pos, to_pos, piece.isupper())
+                
+        elif piece.lower() == 'r':
+            return IsValidRookMove(board, from_pos, to_pos)
+                
+        elif piece.lower() == 'n':
+            return IsValidKnightMove(board, from_pos, to_pos)
+                
+        elif piece.lower() == 'b':
+            return IsValidBishopMove(board, from_pos, to_pos)
+                
+        elif piece.lower() == 'q':
+            return IsValidQueenMove(board, from_pos, to_pos)
+                
+        elif piece.lower() == 'k':
+            return IsValidKingMove(board, from_pos, to_pos)
+                
     return False
-
 # Pawn move validation
 def IsValidPawnMove(board, from_pos, to_pos, is_white):
     from_file, from_rank = from_pos
@@ -122,6 +128,9 @@ def IsValidPawnMove(board, from_pos, to_pos, is_white):
         if board[to_rank][to_file] != " " and board[to_rank][to_file].isupper() != is_white:
             return True
 
+    # Don't take your own pieces loser.
+    SameTeamCheck(board, from_pos, to_pos)
+
     return False
 # Rook move validation
 def IsValidRookMove(board, from_pos, to_pos):
@@ -142,13 +151,14 @@ def IsValidRookMove(board, from_pos, to_pos):
             if board[from_rank][file] != " ":
                 return False
 
-    return True
+    return SameTeamCheck(board, from_pos, to_pos)
 # Knight move validation
 def IsValidKnightMove(board, from_pos, to_pos):
     from_file, from_rank = from_pos
     to_file, to_rank = to_pos
 
-    return (abs(from_file - to_file), abs(from_rank - to_rank)) in [(1, 2), (2, 1)]
+    if (abs(from_file - to_file), abs(from_rank - to_rank)) in [(1, 2), (2, 1)]:
+        return SameTeamCheck(board, from_pos, to_pos)
 # Bishop move validation
 def IsValidBishopMove(board, from_pos, to_pos):
     from_file, from_rank = from_pos
@@ -163,24 +173,125 @@ def IsValidBishopMove(board, from_pos, to_pos):
         if board[rank][file] != " ":
             return False
 
-    return True
+    return SameTeamCheck(board, from_pos, to_pos)
 # Queen move validation
 def IsValidQueenMove(board, from_pos, to_pos):
-    return IsValidRookMove(board, from_pos, to_pos) or IsValidBishopMove(board, from_pos, to_pos)
+    if IsValidRookMove(board, from_pos, to_pos) or IsValidBishopMove(board, from_pos, to_pos):
+        return SameTeamCheck(board, from_pos, to_pos)
 # King move validation
 def IsValidKingMove(board, from_pos, to_pos):
     from_file, from_rank = from_pos
     to_file, to_rank = to_pos
 
-    return max(abs(from_file - to_file), abs(from_rank - to_rank)) == 1
+    if max(abs(from_file - to_file), abs(from_rank - to_rank)) == 1:
+        return SameTeamCheck(board, from_pos, to_pos)
 
+# Formulates files from numbers
+def FormulateFile(number):
+    if number == 0:
+        return "a"
+    elif number == 1:
+        return "b"
+    elif number == 2:
+        return "c"
+    elif number == 3:
+        return "d"
+    elif number == 4:
+        return "e"
+    elif number == 5:
+        return "f"
+    elif number == 6:
+        return "g"
+    elif number == 7:
+        return "h"
+    else:
+        return
+# Formulates Ranks from numbers
+def FormulateRank(number):
+    if number == 0:
+        return "8"
+    elif number == 1:
+        return "7"
+    elif number == 2:
+        return "6"
+    elif number == 3:
+        return "5"
+    elif number == 4:
+        return "4"
+    elif number == 5:
+        return "3"
+    elif number == 6:
+        return "2"
+    elif number == 7:
+        return "1"
+    else:
+        return
+
+# Adds to the PGN NEEDS TO GO AFTER CHECKS
+def AddPGN(board, from_pos, to_pos):
+    global PGN
+    global turn_num
+    from_file, from_rank = from_pos
+    to_file, to_rank = to_pos
+    final = ""
+
+    # Determine the piece being moved
+    piece = board[from_rank][from_file].upper()
+    to_file_str = FormulateFile(to_file)
+    to_rank_str = FormulateRank(to_rank)
+
+    # Handle pawn moves separately
+    if piece == "P":
+        if from_file != to_file and board[to_rank][to_file] != " ":
+            final += FormulateFile(from_file).lower() + "x" + to_file_str + to_rank_str
+        else:
+            final += to_file_str + to_rank_str
+    else:
+        final += piece
+        if board[to_rank][to_file] != " ":
+            final += "x"
+        final += to_file_str + to_rank_str
+    if turn_num % 2 == 1:
+        PGN.append(f"{(turn_num + 1) // 2}.")
+    PGN.append(final)
+    print(PGN)
 # Need to consider Check and Checkmate.
-# Need to make it switch turns
 
+# Checks whose Turn it is and only lets that player move.
+def SwitchTurn(board, from_pos, to_pos):
+    global turn_num
+    from_file, from_rank = from_pos
+    if turn_num % 2 != 1:
+        if board[from_rank][from_file].islower():
+            AddPGN(board, from_pos, to_pos)
+            turn_num += 1
+            return True
+        else:
+            return False
+    else:
+        if board[from_rank][from_file].isupper():
+            AddPGN(board, from_pos, to_pos)
+            turn_num += 1
+            return True
+        else:
+            return False
+# Checks to see if the Piece being moved is trying to move to another friendly pieces location and will not let it if it wont.
+def SameTeamCheck(board, from_pos, to_pos):
+    from_file, from_rank = from_pos
+    to_file, to_rank = to_pos
 
+    from_piece = board[from_rank][from_file]
+    to_piece = board[to_rank][to_file]
 
+    # White pieces are uppercase, black pieces are lowercase
+    if from_piece.isupper():
+        if to_piece.isupper() and to_piece != " ":
+            return False
+    else:
+        if to_piece.islower() and to_piece != " ":
+            return False
 
-
+    return True
 
 # Creates the window that runs the GUI, Also handles getting selection in the array.
 def RunWindow():
