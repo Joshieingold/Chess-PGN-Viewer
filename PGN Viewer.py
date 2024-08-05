@@ -1,12 +1,13 @@
-# Librarys being used.
 import tkinter as tk
+from tkinter import ttk
+from tkinter import simpledialog
 from PIL import Image, ImageTk
 import os
 import clipboard
 
 # Global Variables
 turn_num = 1
-global PGN 
+global PGN
 PGN = []
 
 # Creates a fresh chess board for the use of the game.
@@ -24,10 +25,12 @@ def CreateBoard():
     board.append(white_pawns)
     board.append(white_minor_pieces)
     return board
+
 # Prints the chess board into the console.
 def PrintConsoleBoard(board):
     for i in board:
         print(i)
+
 # Does the logic for making the 64 squares of a chess board.
 def DrawBoard(gui_board, board, images):
     gui_board.delete("all")  # Clear the current board
@@ -40,15 +43,17 @@ def DrawBoard(gui_board, board, images):
             piece = board[j][i]
             if piece != " ":
                 gui_board.create_image((x0 + x1) // 2, (y0 + y1) // 2, image=images[piece])
+
 # Takes the location of your selected piece in the array and moves it to the next selected place.
 def ArrayTransfer(board, from_location, to_location):
-    if IsValidMove(board, from_location, to_location):
+    if SwitchTurn(board, from_location, to_location):
         file_from, rank_from = from_location
         file_to, rank_to = to_location
 
         piece = board[rank_from][file_from]
         board[rank_from][file_from] = " "
         board[rank_to][file_to] = piece
+
 # Prints a FEN to the console after every move.
 def CreateFEN(board):
     FEN = ""
@@ -66,8 +71,8 @@ def CreateFEN(board):
                 FEN += piece
         if count > 0:
             FEN += str(count)
-    print(FEN)
     clipboard.copy(FEN)
+
 # Imports a FEN string into the board
 def ImportFEN(board, fen):
     imported_FEN = fen.split("/")
@@ -82,29 +87,25 @@ def ImportFEN(board, fen):
         new_board.append(new_rank)
     for i in range(8):
         board[i] = new_board[i]
+
 # Checks if a move is valid
 def IsValidMove(board, from_pos, to_pos):
     piece = board[from_pos[1]][from_pos[0]]
-    if SwitchTurn(board, from_pos, to_pos) == True:
-        if piece.lower() == 'p':
-            return IsValidPawnMove(board, from_pos, to_pos, piece.isupper())
-                
-        elif piece.lower() == 'r':
-            return IsValidRookMove(board, from_pos, to_pos)
-                
-        elif piece.lower() == 'n':
-            return IsValidKnightMove(board, from_pos, to_pos)
-                
-        elif piece.lower() == 'b':
-            return IsValidBishopMove(board, from_pos, to_pos)
-                
-        elif piece.lower() == 'q':
-            return IsValidQueenMove(board, from_pos, to_pos)
-                
-        elif piece.lower() == 'k':
-            return IsValidKingMove(board, from_pos, to_pos)
-                
+
+    if piece.lower() == 'p':
+        return IsValidPawnMove(board, from_pos, to_pos, piece.isupper())
+    elif piece.lower() == 'r':
+        return IsValidRookMove(board, from_pos, to_pos)
+    elif piece.lower() == 'n':
+        return IsValidKnightMove(board, from_pos, to_pos)
+    elif piece.lower() == 'b':
+        return IsValidBishopMove(board, from_pos, to_pos)
+    elif piece.lower() == 'q':
+        return IsValidQueenMove(board, from_pos, to_pos)
+    elif piece.lower() == 'k':
+        return IsValidKingMove(board, from_pos, to_pos)
     return False
+
 # Pawn move validation
 def IsValidPawnMove(board, from_pos, to_pos, is_white):
     from_file, from_rank = from_pos
@@ -132,6 +133,7 @@ def IsValidPawnMove(board, from_pos, to_pos, is_white):
     SameTeamCheck(board, from_pos, to_pos)
 
     return False
+
 # Rook move validation
 def IsValidRookMove(board, from_pos, to_pos):
     from_file, from_rank = from_pos
@@ -152,6 +154,7 @@ def IsValidRookMove(board, from_pos, to_pos):
                 return False
 
     return SameTeamCheck(board, from_pos, to_pos)
+
 # Knight move validation
 def IsValidKnightMove(board, from_pos, to_pos):
     from_file, from_rank = from_pos
@@ -159,6 +162,7 @@ def IsValidKnightMove(board, from_pos, to_pos):
 
     if (abs(from_file - to_file), abs(from_rank - to_rank)) in [(1, 2), (2, 1)]:
         return SameTeamCheck(board, from_pos, to_pos)
+
 # Bishop move validation
 def IsValidBishopMove(board, from_pos, to_pos):
     from_file, from_rank = from_pos
@@ -174,10 +178,12 @@ def IsValidBishopMove(board, from_pos, to_pos):
             return False
 
     return SameTeamCheck(board, from_pos, to_pos)
+
 # Queen move validation
 def IsValidQueenMove(board, from_pos, to_pos):
     if IsValidRookMove(board, from_pos, to_pos) or IsValidBishopMove(board, from_pos, to_pos):
         return SameTeamCheck(board, from_pos, to_pos)
+
 # King move validation
 def IsValidKingMove(board, from_pos, to_pos):
     from_file, from_rank = from_pos
@@ -204,123 +210,146 @@ def FormulateFile(number):
         return "g"
     elif number == 7:
         return "h"
-    else:
-        return
-# Formulates Ranks from numbers
-def FormulateRank(number):
-    if number == 0:
+
+# Formulates numbers from files
+def FormulateRank(file):
+    if file == 0:
         return "8"
-    elif number == 1:
+    elif file == 1:
         return "7"
-    elif number == 2:
+    elif file == 2:
         return "6"
-    elif number == 3:
+    elif file == 3:
         return "5"
-    elif number == 4:
+    elif file == 4:
         return "4"
-    elif number == 5:
+    elif file == 5:
         return "3"
-    elif number == 6:
+    elif file == 6:
         return "2"
-    elif number == 7:
+    elif file == 7:
         return "1"
-    else:
-        return
 
-# Adds to the PGN NEEDS TO GO AFTER CHECKS
-def AddPGN(board, from_pos, to_pos):
-    global PGN
-    global turn_num
-    from_file, from_rank = from_pos
-    to_file, to_rank = to_pos
-    final = ""
-
-    # Determine the piece being moved
-    piece = board[from_rank][from_file].upper()
-    to_file_str = FormulateFile(to_file)
-    to_rank_str = FormulateRank(to_rank)
-
-    # Handle pawn moves separately
-    if piece == "P":
-        if from_file != to_file and board[to_rank][to_file] != " ":
-            final += FormulateFile(from_file).lower() + "x" + to_file_str + to_rank_str
-        else:
-            final += to_file_str + to_rank_str
-    else:
-        final += piece
-        if board[to_rank][to_file] != " ":
-            final += "x"
-        final += to_file_str + to_rank_str
-    if turn_num % 2 == 1:
-        PGN.append(f"{(turn_num + 1) // 2}.")
-    PGN.append(final)
-    CreatePGN(PGN)
-# Prints the Completed PGN
-def CreatePGN(PGN):
-    print(" ".join(PGN))
-
-# Need to consider Check and Checkmate.
-
-# Checks whose Turn it is and only lets that player move.
+# Changes turn to ensure legality.
 def SwitchTurn(board, from_pos, to_pos):
     global turn_num
-    from_file, from_rank = from_pos
-    if turn_num % 2 != 1:
-        if board[from_rank][from_file].islower():
-            AddPGN(board, from_pos, to_pos)
+    turn = 'W' if turn_num % 2 == 1 else 'B'
+
+    piece = board[from_pos[1]][from_pos[0]]
+    if piece == ' ':
+        return False
+
+    if (piece.isupper() and turn == 'W') or (piece.islower() and turn == 'B'):
+        if IsValidMove(board, from_pos, to_pos):
             turn_num += 1
+            MoveMemory(board, from_pos, to_pos, turn)
             return True
-        else:
-            return False
-    else:
-        if board[from_rank][from_file].isupper():
-            AddPGN(board, from_pos, to_pos)
-            turn_num += 1
-            return True
-        else:
-            return False
-# Checks to see if the Piece being moved is trying to move to another friendly pieces location and will not let it if it wont.
-def SameTeamCheck(board, from_pos, to_pos):
+
+    return False
+
+# Keeps track of what moves were played in memory
+def MoveMemory(board, from_pos, to_pos, turn):
+    global PGN
     from_file, from_rank = from_pos
     to_file, to_rank = to_pos
+    move_number = str((turn_num + 1) // 2)
+    
+    piece = board[from_rank][from_file]
 
-    from_piece = board[from_rank][from_file]
-    to_piece = board[to_rank][to_file]
-
-    # White pieces are uppercase, black pieces are lowercase
-    if from_piece.isupper():
-        if to_piece.isupper() and to_piece != " ":
-            return False
+    from_square = str(FormulateFile(from_file)) + str(FormulateRank(from_rank))
+    to_square = str(FormulateFile(to_file)) + str(FormulateRank(to_rank))
+    move = ""
+    if piece.lower() == "p":
+        if board[to_pos[1]][to_pos[0]] != " ":
+            move += from_square[0] 
+            move += "x"
+        move += to_square
     else:
-        if to_piece.islower() and to_piece != " ":
-            return False
+        move += piece.upper()
+        if board[to_pos[1]][to_pos[0]] != " ":
+            move += "x"
+        move += to_square
+    if turn == 'W':
+        PGN.append(move)
+    else:
+        PGN[-1] += " " + move
+
+# Returns false if the move is on the same team.
+def SameTeamCheck(board, from_pos, to_pos):
+    from_piece = board[from_pos[1]][from_pos[0]]
+    to_piece = board[to_pos[1]][to_pos[0]]
+
+    if to_piece != " " and (from_piece.isupper() and to_piece.isupper() or from_piece.islower() and to_piece.islower()):
+        return False
 
     return True
 
-# Creates the window that runs the GUI, Also handles getting selection in the array.
-def RunWindow():
-    window = tk.Tk()
-    window.title("Chess PGN Viewer")
-    window.geometry("600x700")
-    gui_board = tk.Canvas(window, width=600, height=600, bg="white")
-    gui_board.pack(side=tk.TOP)
-    control_frame = tk.Frame(window)
-    control_frame.pack(side=tk.BOTTOM)
-    status_label = tk.Label(control_frame, text="Select a piece to move.")
-    status_label.pack()
-    fen_label = tk.Label(control_frame, text="Enter FEN:")
-    fen_label.pack(side=tk.LEFT)
-    fen_entry = tk.Entry(control_frame)
-    fen_entry.pack(side=tk.LEFT)
-    import_button = tk.Button(control_frame, text="Import FEN", command=lambda: on_import_fen(fen_entry.get()))
-    import_button.pack(side=tk.LEFT)
-    selected_piece = None
-    selected_pos = None
-    board = CreateBoard()
+# Gradient Navbar
+def create_gradient(canvas, color1, color2):
+    width = canvas.winfo_reqwidth()
+    height = canvas.winfo_reqheight()
+    limit = height
+    (r1, g1, b1) = canvas.winfo_rgb(color1)
+    (r2, g2, b2) = canvas.winfo_rgb(color2)
+    r_ratio = float(r2 - r1) / limit
+    g_ratio = float(g2 - g1) / limit
+    b_ratio = float(b2 - b1) / limit
 
-    # Load images with absolute paths
-    base_path = os.path.join(os.path.dirname(__file__), "images")
-    piece_images = {
+    for i in range(limit):
+        nr = int(r1 + (r_ratio * i))
+        ng = int(g1 + (g_ratio * i))
+        nb = int(b1 + (b_ratio * i))
+        color = f'#{nr:04x}{ng:04x}{nb:04x}'
+        canvas.create_line(0, i, width, i, fill=color)
+
+
+# GUI Setup
+class ChessGUI:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Chess PGN Viewer")
+
+        # Top gradient navbar
+        self.navbar = tk.Canvas(root, height=40, bg="blue")
+        self.navbar.pack(fill=tk.X)
+        create_gradient(self.navbar, "#1E90FF", "#87CEEB")
+
+        self.import_fen_button = tk.Button(root, text="Import FEN", command=self.import_fen)
+        self.navbar.create_window(50, 25, window=self.import_fen_button)
+
+        self.copy_pgn_button = tk.Button(root, text="Copy PGN", command=self.copy_pgn)
+        self.navbar.create_window(150, 25, window=self.copy_pgn_button)
+
+        self.copy_fen_button = tk.Button(root, text="Copy FEN", command=self.copy_fen)
+        self.navbar.create_window(250, 25, window=self.copy_fen_button)
+
+        # Main frame
+        self.main_frame = tk.Frame(root, height="300")
+        self.main_frame.pack(fill=tk.BOTH, expand=True)
+
+        # Side tab for PGN
+        self.pgn_frame = tk.Frame(self.main_frame, width=200, bg="#121111")
+        self.pgn_frame.pack(side=tk.RIGHT, fill=tk.Y)
+        self.pgn_label = tk.Label(self.pgn_frame, text="PGN:", bg='#121111', fg='#ffffff', padx = 10, pady = 5)
+        self.pgn_label.pack(anchor=tk.NW)
+        self.pgn_text = tk.Text(self.pgn_frame, height=40, width=25, bg="#292929", fg="#ffffff", state=tk.DISABLED)
+        self.pgn_text.pack(anchor=tk.NW, padx=10, pady=10)
+
+        # Canvas for chess board
+        self.board_canvas = tk.Canvas(self.main_frame, width=600, height=600, bg="#121111")
+        self.board_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        self.images = self.load_images()
+        self.board = CreateBoard()
+        DrawBoard(self.board_canvas, self.board, self.images)
+
+        # Bind clicks
+        self.board_canvas.bind("<Button-1>", self.on_board_click)
+        self.selected_piece = None
+
+    def load_images(self):
+        base_path = os.path.join(os.path.dirname(__file__), "images")
+        piece_images = {
         'r': ImageTk.PhotoImage(Image.open(os.path.join(base_path, "br.png"))),
         'n': ImageTk.PhotoImage(Image.open(os.path.join(base_path, "bn.png"))),
         'b': ImageTk.PhotoImage(Image.open(os.path.join(base_path, "bb.png"))),
@@ -334,35 +363,43 @@ def RunWindow():
         'K': ImageTk.PhotoImage(Image.open(os.path.join(base_path, "wk.png"))),
         'P': ImageTk.PhotoImage(Image.open(os.path.join(base_path, "wp.png")))
     }
+        return piece_images
 
-    # Finds the location in the board array that was clicked on in the GUI
-    def on_square_click(event):
-        nonlocal selected_piece, selected_pos
-        x, y = event.x, event.y
-        file, rank = x // 75, y // 75
-
-        if selected_piece is None:
-            # Selecting a piece to move
-            if board[rank][file] != " ":
-                selected_piece = board[rank][file]
-                selected_pos = (file, rank)
-                status_label.config(text=f"Selected {selected_piece} at {chr(file + 97)}{8 - rank}. Now select destination.")
+    def on_board_click(self, event):
+        file = event.x // 75
+        rank = event.y // 75
+        if self.selected_piece:
+            to_location = (file, rank)
+            from_location = self.selected_piece
+            ArrayTransfer(self.board, from_location, to_location)
+            self.selected_piece = None
+            DrawBoard(self.board_canvas, self.board, self.images)
+            self.update_pgn_text()
         else:
-            # Moving the selected piece
-            ArrayTransfer(board, selected_pos, (file, rank))
-            DrawBoard(gui_board, board, piece_images)
-            CreateFEN(board)
-            selected_piece = None
-            selected_pos = None
-            status_label.config(text="Select a piece to move.")
+            self.selected_piece = (file, rank)
 
-    # Handles importing the FEN string
-    def on_import_fen(fen):
-        ImportFEN(board, fen)
-        DrawBoard(gui_board, board, piece_images)
+    def update_pgn_text(self):
+        self.pgn_text.config(state=tk.NORMAL)
+        self.pgn_text.delete(1.0, tk.END)
+        for move in PGN:
+            self.pgn_text.insert(tk.END, move + "\n")
+        self.pgn_text.config(state=tk.DISABLED)
 
-    gui_board.bind("<Button-1>", on_square_click)
-    DrawBoard(gui_board, board, piece_images)
-    window.mainloop()
+    def import_fen(self):
+        fen = tk.simpledialog.askstring("Import FEN", "Enter FEN string:")
+        if fen:
+            ImportFEN(self.board, fen)
+            DrawBoard(self.board_canvas, self.board, self.images)
 
-RunWindow()
+    def copy_pgn(self):
+        pgn_string = " ".join(PGN)
+        clipboard.copy(pgn_string)
+
+
+    def copy_fen(self):
+        CreateFEN(self.board)
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = ChessGUI(root)
+    root.mainloop()
